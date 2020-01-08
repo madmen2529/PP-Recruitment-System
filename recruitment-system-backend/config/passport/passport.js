@@ -1,115 +1,90 @@
+const env = process.env.NODE_ENV || 'development'
+const config = require('../config.json')[env];
+
 const bcrypt = require('bcryptjs')
+const BCRYPT_SALT_ROUNDS = config.salt_length
+
 const passport = require('passport')
-const db = require('../../models')
 const localStrategy = require('passport-local').Strategy
-const JWTstrategy = require('passport-jwt').Strategy
-const ExtractJWT = require('passport-jwt').ExtractJwt
+const JWTStrategy = require('passport-jwt').Strategy
+const extractJwt = require('passport-jwt').ExtractJwt
+const db = require('../../models')
 
-const BCRYPT_SALT_ROUNDS = 12;
-let jwtOptions = {};
-jwtOptions.secretOrKey = 'codecamp4'
+let jwtOptions = {}
+jwtOptions.secretOrKey = 'n00bma5t3r69'
 
-passport.use(
-  'register',
-  new localStrategy(
-    {
-      usernameField: 'username',
-      passwordField: 'password',
-      session: false,
-    },
-    (username, password, done) => {
-      db.user.findOne({
-        where: { username: username }
-      }).then(user => {
-        if (user !== null) {
-          console.log("username already taken");
-          return done(null, false, { message: 'username already taken' });
-        } else {
-          var salt = bcrypt.genSaltSync(BCRYPT_SALT_ROUNDS);
-          var hashedPassword = bcrypt.hashSync(password, salt);
-          db.user.create({ username, password: hashedPassword })
-            .then(user => {
-              console.log("user created");
-              return done(null, user);
-            })
-            .catch(err => {
-              console.error(err)
-              done(err)
-            })
-        }
-      })
-    }
-  )
-);
-
-passport.use(
-  'login',
-  new localStrategy(
-    {
-      usernameField: 'username',
-      passwordField: 'password',
-      session: false,
-    },
-    (username, password, done) => {
-      try {
-        db.user.findOne({
-          where: {
-            username,
-          },
-        }).then(user => {
-          if (user === null) {
-            return done(null, false, { message: 'bad username' });
-          }
-          console.log(user.password)
-          bcrypt.compare(password, user.password, function (err, response) {
-            console.log({ response })
-            if (err) {
-              console.log(err)
-              done(err)
-            }
-            if (response !== true) {
-              console.log('passwords do not match');
-              return done(null, false, { message: 'passwords do not match' });
-            }
-            console.log('user found & authenticated');
-            return done(null, user);
-          });
-        });
-      } catch (err) {
-        done(err);
+passport.use('register', new localStrategy(
+  {
+    usernameField: 'username',
+    passwordField: 'password',
+    session: false,
+  },
+  (username, password, done) => {
+    db.user.findOne({
+      where: { username: username }
+    }).then(user => {
+      // done(error, user, info)
+      if (user !== null) {
+        console.log('Username already taken')
+        return done(null, false, { message: 'username already taken' });
+      } else {
+        let salt = bcrypt.genSaltSync(BCRYPT_SALT_ROUNDS);
+        let hashedPassword = bcrypt.hashSync(password, salt);
+        db.user.create({ username, password: hashedPassword })
+          .then(user => {
+            console.log("user created")
+            return done(null, user)
+          })
+          .catch(err => {
+            console.error(err)
+            done(err)
+          })
       }
-    },
-  ),
-);
+    })
+  }
+))
+
+passport.use('login', new localStrategy(
+  {
+    usernameField: 'username',
+    passwordField: 'password',
+    session: false,
+  }, async (username, password, done) => {
+    let user = await db.user.findOne({ where: { username } })
+    if (user === null) {
+      return done(null, false, { message: 'username or password is incorrect.' })
+    }
+    bcrypt.compare(password, user.password, function (err, response) {
+      if (err) {
+        console.error(err)
+        done(err)
+      }
+      if (!response) {
+        return done(null, false, { message: 'username or password is incorrect.' })
+      }
+      console.log(`user ${user.id} is found  & authenticated`)
+      return done(null, user)
+    })
+  }
+))
 
 const opts = {
-  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-  secretOrKey: jwtOptions.secretOrKey,
-};
+  jwtFromRequest: extractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: jwtOptions.secretOrKey
+}
 
-passport.use(
-  'jwt',
-  new JWTstrategy(opts, (jwt_payload, done) => {
-    try {
-      console.log("test")
-      db.user.findOne({
-        where: {
-          id: jwt_payload.id,
-        },
-      }).then(user => {
-        if (user) {
-          console.log('user found in db in passport');
-          done(null, user);
-        } else {
-          console.log('user not found in db');
-          done(null, false);
-        }
-      });
-    } catch (err) {
-      console.log(err)
-      done(err);
-    }
-  }),
-);
+passport.use('jwt', new JWTStrategy(opts, (jwt_payload, done) => {
+  console.log({ jwt_payload })
+  db.user.findOne({ where: { id: jwt_payload.id } })
+    .then(user => {
+      if (user) {
+        console.log("user found")
+        done(null, user)
+      } else {
+        console.log("user is not found")
+        done(null, false)
+      }
+    })
+}))
 
-module.exports = { jwtOptions, BCRYPT_SALT_ROUNDS }
+module.exports = jwtOptions

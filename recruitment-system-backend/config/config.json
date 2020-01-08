@@ -1,10 +1,11 @@
 {
   "development": {
     "username": "root",
-    "password": "tigersut",
-    "database": "fakebook_db",
+    "password": "nutbonus12",
+    "database": "clinical-system",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "salt_length": 12
   },
   "test": {
     "username": "root",
