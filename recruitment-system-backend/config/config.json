@@ -1,8 +1,8 @@
 {
   "development": {
     "username": "root",
-    "password": "nutbonus12",
-    "database": "clinical-system",
+    "password": "tigersut",
+    "database": "recruitment",
     "host": "127.0.0.1",
     "dialect": "mysql",
     "salt_length": 12

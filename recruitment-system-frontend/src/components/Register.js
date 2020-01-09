@@ -320,7 +320,7 @@ class Register extends Component {
               })(<Input placeholder="ค่าแรงสูงสุด" />)}
             </Form.Item>
             <Form.Item hasFeedback>
-              {getFieldDecorator("edu_level", {
+              {getFieldDecorator("education_level", {
                 rules: [
                   { required: true, message: "ระดับการศึกษาสูงสุดต้องระบุ !" }
                 ]
@@ -361,7 +361,7 @@ class Register extends Component {
               )}
             </Form.Item>
             <Form.Item>
-              {getFieldDecorator("phone", {
+              {getFieldDecorator("phone_number", {
                 rules: [
                   { required: true, message: "หมายเลขโทรศัพท์ต้องระบุ !" }
                 ]

@@ -22,17 +22,20 @@ export default class HeaderCls extends Component {
   render() {
     return (
       <section id="header-section">
-        <div className="logo bg-white text-center">
+        {/* <div className="logo bg-white text-center">
           <h2>Logo</h2>
-        </div>
-        <Header id="navtop-header-antd" className="bg-white">
+        </div> */}
+        <Header id="navtop-header-antd">
+          <div className="float-left">
+            <div className="pl-3"> Logo </div>
+          </div>
           <Menu
-            className="text-right"
+            className="float-right"
             onClick={this.handleClick}
             selectedKeys={[this.state.current]}
             mode="horizontal"
             style={{ lineHeight: "64px" }}
-          >
+            >
             <Menu.Item key="enterpreneur">
               <Button disabled>
                 {/* <Link to="/"> */}
